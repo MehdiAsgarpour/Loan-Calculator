@@ -1,0 +1,58 @@
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--type", type=str, choices=['diff', 'annuity'])
+parser.add_argument("--periods", type=int)
+parser.add_argument("--principal", type=int)
+parser.add_argument("--payment", type=float)
+parser.add_argument("--interest", type=float)
+args = parser.parse_args()
+D = args.payment
+P = args.principal
+i = args.interest
+n = args.periods
+t = args.type
+L = [D, P, i, n, t]
+R = [x for x in L if x != None]
+N = [x for x in R if x != t and int(x) < 0]
+calc_payment = {args.periods, args.principal, args.interest}
+calc_principal = {args.periods, args.payment, args.interest}
+calc_periods = {args.principal, args.payment, args.interest}
+from math import ceil, floor, log
+if len(R) < 4 or len(N) != 0:
+    print('Incorrect parameters')
+elif all(calc_payment) == True:
+    i /= 1200
+    if args.type == 'diff':
+        D = []
+        for m in range(n):
+            calc = ceil(P / n + i * (P - P * m / n))
+            D.append(calc)
+            print(f'Month {m + 1}: payment is {calc}')
+        print()
+        print(f'Overpayment = {sum(D) - P}')
+    elif args.type == 'annuity':
+        calc = ceil(P * (i * pow(1 + i, n)) / (pow(1 + i, n) - 1))
+        print(f'Your annuity payment = {calc}!')
+        print(f'Overpayment = {calc * n - P}')
+elif all(calc_principal) == True:
+    i /= 1200
+    P = floor(D / ((i * pow(1 + i, n)) / (pow(1 + i, n) -1)))
+    print(f'Your loan principal = {P}!')
+    print(f'Overpayment = {int(D * n - P)}')
+elif all(calc_periods) == True and args.type == 'annuity':
+    i /= 1200
+    n = ceil(log(D / (D - i * P), 1 + i))
+    year, month = n // 12, n % 12
+    year_word, year_s, and_word, month_word, month_s = 'year', 's', 'and', 'month', 's'
+    if year == 0:
+        year, year_word, year_s, and_word = '', '', '', ''
+    if year == 1:
+        year_s = ''
+    if month == 0:
+        month, month_word, month_s, and_word = '', '', '', ''
+    if month == 1:
+        month_s = ''
+    print(f'It will take {year} {year_word}{year_s} {and_word} {month} {month_word}{month_s} to repay this loan!')
+    print(f'Overpayment = {int(D * n - P)}')
+else:
+    print('Incorrect parameters')
